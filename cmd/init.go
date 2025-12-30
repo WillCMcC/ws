@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 )
@@ -21,6 +22,27 @@ ws() {
             command ws go "$2"
             return $exit_code
         fi
+    elif [[ "$1" == "home" ]]; then
+        local target
+        target=$(command ws home 2>/dev/null)
+        local exit_code=$?
+        if [[ $exit_code -eq 0 && -n "$target" && -d "$target" ]]; then
+            cd "$target" || return 1
+        else
+            command ws home
+            return $exit_code
+        fi
+    elif [[ "$1" == "new" && -n "$2" ]]; then
+        command ws "$@"
+        local exit_code=$?
+        if [[ $exit_code -eq 0 ]]; then
+            local target
+            target=$(command ws go "$2" 2>/dev/null)
+            if [[ -n "$target" && -d "$target" ]]; then
+                cd "$target" || return 1
+            fi
+        fi
+        return $exit_code
     else
         command ws "$@"
     fi
@@ -29,7 +51,7 @@ ws() {
 # Optional: completion
 _ws_completions() {
     if [[ ${COMP_CWORD} -eq 1 ]]; then
-        COMPREPLY=($(compgen -W "new list go done status prune init" -- "${COMP_WORDS[1]}"))
+        COMPREPLY=($(compgen -W "new list go home done status prune init" -- "${COMP_WORDS[1]}"))
     elif [[ ${COMP_CWORD} -eq 2 ]]; then
         case "${COMP_WORDS[1]}" in
             go|done|status)
@@ -54,6 +76,27 @@ ws() {
             command ws go "$2"
             return $exit_code
         fi
+    elif [[ "$1" == "home" ]]; then
+        local target
+        target=$(command ws home 2>/dev/null)
+        local exit_code=$?
+        if [[ $exit_code -eq 0 && -n "$target" && -d "$target" ]]; then
+            cd "$target"
+        else
+            command ws home
+            return $exit_code
+        fi
+    elif [[ "$1" == "new" && -n "$2" ]]; then
+        command ws "$@"
+        local exit_code=$?
+        if [[ $exit_code -eq 0 ]]; then
+            local target
+            target=$(command ws go "$2" 2>/dev/null)
+            if [[ -n "$target" && -d "$target" ]]; then
+                cd "$target"
+            fi
+        fi
+        return $exit_code
     else
         command ws "$@"
     fi
@@ -66,6 +109,7 @@ _ws() {
         'new:Create a new workspace'
         'list:List all workspaces'
         'go:Navigate to a workspace'
+        'home:Navigate to main repository'
         'done:Remove a workspace'
         'status:Show workspace status'
         'prune:Clean up stale worktrees'
@@ -97,6 +141,25 @@ function ws
             command ws go $argv[2]
             return $exit_code
         end
+    else if test "$argv[1]" = "home"
+        set -l target (command ws home 2>/dev/null)
+        set -l exit_code $status
+        if test $exit_code -eq 0 -a -n "$target" -a -d "$target"
+            cd $target
+        else
+            command ws home
+            return $exit_code
+        end
+    else if test "$argv[1]" = "new" -a -n "$argv[2]"
+        command ws $argv
+        set -l exit_code $status
+        if test $exit_code -eq 0
+            set -l target (command ws go $argv[2] 2>/dev/null)
+            if test -n "$target" -a -d "$target"
+                cd $target
+            end
+        end
+        return $exit_code
     else
         command ws $argv
     end
@@ -106,6 +169,7 @@ end
 complete -c ws -n "__fish_use_subcommand" -a new -d "Create a new workspace"
 complete -c ws -n "__fish_use_subcommand" -a list -d "List all workspaces"
 complete -c ws -n "__fish_use_subcommand" -a go -d "Navigate to a workspace"
+complete -c ws -n "__fish_use_subcommand" -a home -d "Navigate to main repository"
 complete -c ws -n "__fish_use_subcommand" -a done -d "Remove a workspace"
 complete -c ws -n "__fish_use_subcommand" -a status -d "Show workspace status"
 complete -c ws -n "__fish_use_subcommand" -a prune -d "Clean up stale worktrees"
@@ -197,8 +261,16 @@ func InitCmd(args []string) int {
 
 	fmt.Printf("Added to %s\n", rcFile)
 	fmt.Println()
-	fmt.Println("Restart your shell or run:")
-	fmt.Printf("  source %s\n", rcFile)
+
+	// Copy source command to clipboard
+	sourceCmd := fmt.Sprintf("source %s", rcFile)
+	if copyToClipboard(sourceCmd) {
+		fmt.Println("Copied to clipboard! Paste and run:")
+		fmt.Printf("  %s\n", sourceCmd)
+	} else {
+		fmt.Println("Restart your shell or run:")
+		fmt.Printf("  %s\n", sourceCmd)
+	}
 
 	return 0
 }
@@ -216,4 +288,29 @@ func detectShell() string {
 	}
 	// Default to bash
 	return "bash"
+}
+
+func copyToClipboard(text string) bool {
+	// Try pbcopy (macOS)
+	cmd := exec.Command("pbcopy")
+	cmd.Stdin = strings.NewReader(text)
+	if err := cmd.Run(); err == nil {
+		return true
+	}
+
+	// Try xclip (Linux)
+	cmd = exec.Command("xclip", "-selection", "clipboard")
+	cmd.Stdin = strings.NewReader(text)
+	if err := cmd.Run(); err == nil {
+		return true
+	}
+
+	// Try xsel (Linux)
+	cmd = exec.Command("xsel", "--clipboard", "--input")
+	cmd.Stdin = strings.NewReader(text)
+	if err := cmd.Run(); err == nil {
+		return true
+	}
+
+	return false
 }

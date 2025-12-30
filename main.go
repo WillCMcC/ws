@@ -27,6 +27,8 @@ func main() {
 		exitCode = cmd.ListCmd(args)
 	case "go":
 		exitCode = cmd.GoCmd(args)
+	case "home":
+		exitCode = cmd.HomeCmd(args)
 	case "done", "rm", "remove":
 		exitCode = cmd.DoneCmd(args)
 	case "status", "st":
@@ -56,9 +58,10 @@ func printUsage() {
 Usage: ws <command> [arguments]
 
 Commands:
-  new <name>     Create a new workspace (worktree + branch)
+  new <name>     Create a new workspace and navigate to it
   list           List all workspaces
-  go <name>      Navigate to a workspace (requires shell integration)
+  go <name>      Navigate to a workspace
+  home           Navigate to main repository
   done <name>    Remove a workspace
   status         Show detailed status of all workspaces
   prune          Clean up stale worktrees
@@ -70,10 +73,11 @@ Aliases:
   st             Alias for 'status'
 
 Examples:
-  ws new auth-feature          Create workspace 'auth-feature'
+  ws new auth-feature          Create workspace and cd into it
   ws new bugfix --from develop Create from 'develop' branch
   ws list                      List all workspaces
   ws go auth-feature           Navigate to workspace
+  ws home                      Navigate back to main repo
   ws done auth-feature         Remove workspace when done
   ws init                      Set up shell integration
 
