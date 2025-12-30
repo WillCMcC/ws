@@ -1,10 +1,39 @@
 # ws - Workspace Manager for Parallel Agent Development
 
+`ws` helps launch multiple agents into their own workspace to run feature dev in parallel.
+
+## Quick start
+
+Bash one liner:
+
+```bash
+git clone https://github.com/WillCMcC/ws.git && cd ws && make && sudo make install && ws init
+```
+
+`ws new` creates a fresh workspace (branch and git worktree) to isolate development.
+
+`ws ez` does the above but runs `claude` automatically (you lazy bastard you)
+
+Once feature work is done, manage git yourself:
+
+`git add .`
+
+`git commit -m 'my message'`
+
+then
+
+`ws fold` rebases back to main (or master, configurable via `ws config`)
+
+If you hit merge conflicts, `ws auto-rebase` launches your agent to help resolve them.
+
+## The docs
+
 `ws` is a minimal CLI tool that manages git worktrees for running multiple coding agents in parallel on the same codebase. It's agent-agnostic, works with any CLI tool (Claude Code, Aider, Codex, Gemini CLI, etc.), and leaves all git operations (commit, merge, push) to you.
 
 ## Why?
 
 When working with AI coding agents, you often want to run multiple tasks in parallel:
+
 - One agent fixing a bug
 - Another adding a feature
 - A third refactoring tests
@@ -34,9 +63,24 @@ make
 sudo make install
 ```
 
+## Configuration
+
+### Using `ws config` (Recommended)
+
+Launches an interactive config. Power users can config via the cli.
+
+```bash
+ws config set agent_cmd "claude --dangerously-skip-permissions"
+ws config set default_base "develop"
+ws config list
+```
+
+Config is stored in `~/.config/ws/config`.
+
 ### Shell Integration (Required for navigation)
 
 Run `ws init` to automatically set up shell integration. It will:
+
 - Add the shell function to your config
 - Copy the `source` command to your clipboard
 
@@ -50,6 +94,7 @@ source /path/to/ws-cli/scripts/shell/ws.bash
 ```
 
 Or see [scripts/shell/ws.bash](scripts/shell/ws.bash) for the full function.
+
 </details>
 
 <details>
@@ -60,6 +105,7 @@ source /path/to/ws-cli/scripts/shell/ws.zsh
 ```
 
 Or see [scripts/shell/ws.zsh](scripts/shell/ws.zsh) for the full function.
+
 </details>
 
 <details>
@@ -70,6 +116,7 @@ source /path/to/ws-cli/scripts/shell/ws.fish
 ```
 
 Or see [scripts/shell/ws.fish](scripts/shell/ws.fish) for the full function.
+
 </details>
 
 ## Quick Start
@@ -92,27 +139,34 @@ ws status
 ws go auth-feature    # go to workspace
 ws home               # go back to main repo
 
-# When done with a workspace
+# When done with a workspace''
+git add .
+git commit -m 'commit msg'
 ws home
 git merge auth-feature  # merge the work
 ws done auth-feature    # clean up
+
+OR
+
+ws fold                 # rebase off of master and merge
 ```
 
 ## Commands
 
-| Command | Aliases | Description |
-|---------|---------|-------------|
-| `ws new <name>` | | Create a new workspace |
-| `ws ez <name>` | | Create workspace and start agent |
-| `ws list` | `ls` | List all workspaces |
-| `ws go <name>` | | Navigate to a workspace |
-| `ws home` | | Navigate to main repository |
-| `ws done <name>` | `rm`, `remove` | Remove a workspace |
-| `ws fold [name]` | | Rebase and merge workspace |
-| `ws status` | `st` | Show detailed workspace status |
-| `ws prune` | | Clean up stale worktrees |
-| `ws init` | | Set up shell integration |
-| `ws config` | | Manage configuration |
+| Command          | Aliases        | Description                      |
+| ---------------- | -------------- | -------------------------------- |
+| `ws new <name>`  |                | Create a new workspace           |
+| `ws ez <name>`   |                | Create workspace and start agent |
+| `ws list`        | `ls`           | List all workspaces              |
+| `ws go <name>`   |                | Navigate to a workspace          |
+| `ws home`        |                | Navigate to main repository      |
+| `ws done <name>` | `rm`, `remove` | Remove a workspace               |
+| `ws fold [name]` |                | Rebase and merge workspace       |
+| `ws auto-rebase` |                | Agent helps resolve rebase conflicts |
+| `ws status`      | `st`           | Show detailed workspace status   |
+| `ws prune`       |                | Clean up stale worktrees         |
+| `ws init`        |                | Set up shell integration         |
+| `ws config`      |                | Manage configuration             |
 
 ### `ws new <name> [--from <ref>]`
 
@@ -183,9 +237,23 @@ ws fold --no-done        # Keep workspace after folding
 ```
 
 This command:
+
 1. Rebases your workspace branch onto the latest default branch
 2. Fast-forward merges into the default branch
 3. Cleans up the workspace (unless `--no-done`)
+4. Returns you to the main repo
+
+### `ws auto-rebase`
+
+When `ws fold` fails due to merge conflicts, run this to get agent help:
+
+```bash
+ws fold              # fails with conflicts
+ws auto-rebase       # agent resolves conflicts
+ws fold              # try again
+```
+
+The agent receives a prompt to examine conflicted files and resolve them, then run `git rebase --continue`.
 
 ### `ws status`
 
@@ -196,6 +264,7 @@ ws status
 ```
 
 Output:
+
 ```
 auth-feature
   Path:     ~/myapp-ws/auth-feature
@@ -238,6 +307,7 @@ ws config path              # Show config file location
 ```
 
 Available keys:
+
 - `agent_cmd` - Command to run with `ws ez`
 - `default_base` - Default base branch for new workspaces
 - `directory` - Workspace directory pattern
@@ -255,18 +325,6 @@ By default, workspaces are created in a sibling directory:
     ├── auth-feature/         # Worktree for auth-feature branch
     └── fix-bug/              # Worktree for fix-bug branch
 ```
-
-## Configuration
-
-### Using `ws config` (Recommended)
-
-```bash
-ws config set agent_cmd "claude --dangerously-skip-permissions"
-ws config set default_base "develop"
-ws config list
-```
-
-Config is stored in `~/.config/ws/config`.
 
 ### Environment Variables
 
@@ -289,4 +347,4 @@ WS_NO_HOOKS="1"               # Disable all hooks
 
 ## License
 
-MIT
+Fork me baby idgaf

@@ -35,6 +35,8 @@ func main() {
 		exitCode = cmd.DoneCmd(args)
 	case "fold":
 		exitCode = cmd.FoldCmd(args)
+	case "auto-rebase":
+		exitCode = cmd.AutoRebaseCmd(args)
 	case "status", "st":
 		exitCode = cmd.StatusCmd(args)
 	case "prune":
@@ -75,6 +77,7 @@ Commands:
   home           Navigate to main repository
   done <name>    Remove a workspace
   fold [name]    Rebase and merge workspace into default branch
+  auto-rebase    Start agent to help resolve rebase conflicts
   status         Show detailed status of all workspaces
   prune          Clean up stale worktrees
   init           Set up shell integration
