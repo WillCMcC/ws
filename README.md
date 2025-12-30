@@ -102,23 +102,25 @@ end
 ```bash
 cd ~/projects/myapp
 
-# Create a workspace for a feature
+# Create a workspace (automatically cd's into it)
 ws new auth-feature
-ws go auth-feature
 claude  # or aider, codex, etc.
 
 # In another terminal, create another workspace
 cd ~/projects/myapp
 ws new fix-bug
-ws go fix-bug
 claude
 
 # Check status of all workspaces
 ws list
 ws status
 
+# Navigate between workspaces
+ws go auth-feature    # go to workspace
+ws home               # go back to main repo
+
 # When done with a workspace
-cd ~/projects/myapp
+ws home
 git merge auth-feature  # merge the work
 ws done auth-feature    # clean up
 ```

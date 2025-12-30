@@ -11,6 +11,25 @@ function ws
             command ws go $argv[2]
             return $exit_code
         end
+    else if test "$argv[1]" = "home"
+        set -l target (command ws home 2>/dev/null)
+        set -l exit_code $status
+        if test $exit_code -eq 0 -a -n "$target" -a -d "$target"
+            cd $target
+        else
+            command ws home
+            return $exit_code
+        end
+    else if test "$argv[1]" = "new" -a -n "$argv[2]"
+        command ws $argv
+        set -l exit_code $status
+        if test $exit_code -eq 0
+            set -l target (command ws go $argv[2] 2>/dev/null)
+            if test -n "$target" -a -d "$target"
+                cd $target
+            end
+        end
+        return $exit_code
     else
         command ws $argv
     end
@@ -20,6 +39,7 @@ end
 complete -c ws -n "__fish_use_subcommand" -a new -d "Create a new workspace"
 complete -c ws -n "__fish_use_subcommand" -a list -d "List all workspaces"
 complete -c ws -n "__fish_use_subcommand" -a go -d "Navigate to a workspace"
+complete -c ws -n "__fish_use_subcommand" -a home -d "Navigate to main repository"
 complete -c ws -n "__fish_use_subcommand" -a done -d "Remove a workspace"
 complete -c ws -n "__fish_use_subcommand" -a status -d "Show workspace status"
 complete -c ws -n "__fish_use_subcommand" -a prune -d "Clean up stale worktrees"

@@ -9,10 +9,30 @@ ws() {
         if [[ $exit_code -eq 0 && -n "$target" && -d "$target" ]]; then
             cd "$target" || return 1
         else
-            # Re-run to show error message
             command ws go "$2"
             return $exit_code
         fi
+    elif [[ "$1" == "home" ]]; then
+        local target
+        target=$(command ws home 2>/dev/null)
+        local exit_code=$?
+        if [[ $exit_code -eq 0 && -n "$target" && -d "$target" ]]; then
+            cd "$target" || return 1
+        else
+            command ws home
+            return $exit_code
+        fi
+    elif [[ "$1" == "new" && -n "$2" ]]; then
+        command ws "$@"
+        local exit_code=$?
+        if [[ $exit_code -eq 0 ]]; then
+            local target
+            target=$(command ws go "$2" 2>/dev/null)
+            if [[ -n "$target" && -d "$target" ]]; then
+                cd "$target" || return 1
+            fi
+        fi
+        return $exit_code
     else
         command ws "$@"
     fi
@@ -21,7 +41,7 @@ ws() {
 # Optional: completion
 _ws_completions() {
     if [[ ${COMP_CWORD} -eq 1 ]]; then
-        COMPREPLY=($(compgen -W "new list go done status prune init" -- "${COMP_WORDS[1]}"))
+        COMPREPLY=($(compgen -W "new list go home done status prune init" -- "${COMP_WORDS[1]}"))
     elif [[ ${COMP_CWORD} -eq 2 ]]; then
         case "${COMP_WORDS[1]}" in
             go|done|status)
