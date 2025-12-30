@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/will/ws/internal/config"
-	"github.com/will/ws/internal/git"
+	"github.com/WillCMcC/ws/internal/config"
+	"github.com/WillCMcC/ws/internal/git"
 )
 
 // Workspace represents a managed workspace.

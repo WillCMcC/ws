@@ -33,6 +33,20 @@ ws() {
             fi
         fi
         return $exit_code
+    elif [[ "$1" == "ez" && -n "$2" ]]; then
+        command ws "$@"
+        local exit_code=$?
+        if [[ $exit_code -eq 0 ]]; then
+            local target
+            target=$(command ws go "$2" 2>/dev/null)
+            if [[ -n "$target" && -d "$target" ]]; then
+                cd "$target"
+                local agent_cmd
+                agent_cmd=$(command ws agent-cmd)
+                eval "$agent_cmd"
+            fi
+        fi
+        return $exit_code
     else
         command ws "$@"
     fi
@@ -43,10 +57,12 @@ _ws() {
     local -a commands
     commands=(
         'new:Create a new workspace'
+        'ez:Create workspace and start agent'
         'list:List all workspaces'
         'go:Navigate to a workspace'
         'home:Navigate to main repository'
         'done:Remove a workspace'
+        'fold:Rebase and merge workspace'
         'status:Show workspace status'
         'prune:Clean up stale worktrees'
         'init:Set up shell integration'
@@ -56,7 +72,7 @@ _ws() {
         _describe 'command' commands
     elif (( CURRENT == 3 )); then
         case "$words[2]" in
-            go|done)
+            go|done|fold)
                 local -a workspaces
                 workspaces=(${(f)"$(command ws list --quiet 2>/dev/null)"})
                 _describe 'workspace' workspaces

@@ -8,7 +8,8 @@ import (
 	"strings"
 	"text/tabwriter"
 
-	"github.com/will/ws/internal/workspace"
+	"github.com/WillCMcC/ws/internal/process"
+	"github.com/WillCMcC/ws/internal/workspace"
 )
 
 // ListCmd handles the 'ws list' command.
@@ -95,12 +96,19 @@ func outputTable(mgr *workspace.Manager, workspaces []workspace.Workspace) int {
 		return 0
 	}
 
+	agentNames := mgr.Config.Status.AgentProcesses
+
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
 	fmt.Fprintln(w, "WORKSPACE\tBRANCH\tPATH\tSTATUS")
 
 	for _, ws := range workspaces {
 		status := "idle"
-		// Could add process detection here in the future
+		if mgr.Config.Status.DetectProcesses {
+			agents := process.DetectAgents(ws.Path, agentNames)
+			if len(agents) > 0 {
+				status = fmt.Sprintf("%s (pid %d)", agents[0].Name, agents[0].PID)
+			}
+		}
 		path := shortenPath(ws.Path)
 		fmt.Fprintf(w, "%s\t%s\t%s\t%s\n", ws.Name, ws.Branch, path, status)
 	}

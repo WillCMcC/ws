@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/will/ws/internal/workspace"
+	"github.com/WillCMcC/ws/internal/workspace"
 )
 
 // NewCmd handles the 'ws new' command.

@@ -33,6 +33,20 @@ ws() {
             fi
         fi
         return $exit_code
+    elif [[ "$1" == "ez" && -n "$2" ]]; then
+        command ws "$@"
+        local exit_code=$?
+        if [[ $exit_code -eq 0 ]]; then
+            local target
+            target=$(command ws go "$2" 2>/dev/null)
+            if [[ -n "$target" && -d "$target" ]]; then
+                cd "$target" || return 1
+                local agent_cmd
+                agent_cmd=$(command ws agent-cmd)
+                eval "$agent_cmd"
+            fi
+        fi
+        return $exit_code
     else
         command ws "$@"
     fi
@@ -41,10 +55,10 @@ ws() {
 # Optional: completion
 _ws_completions() {
     if [[ ${COMP_CWORD} -eq 1 ]]; then
-        COMPREPLY=($(compgen -W "new list go home done status prune init" -- "${COMP_WORDS[1]}"))
+        COMPREPLY=($(compgen -W "new ez list go home done fold status prune init" -- "${COMP_WORDS[1]}"))
     elif [[ ${COMP_CWORD} -eq 2 ]]; then
         case "${COMP_WORDS[1]}" in
-            go|done|status)
+            go|done|fold|status)
                 local workspaces
                 workspaces=$(command ws list --quiet 2>/dev/null)
                 COMPREPLY=($(compgen -W "$workspaces" -- "${COMP_WORDS[2]}"))

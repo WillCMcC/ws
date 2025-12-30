@@ -13,88 +13,63 @@ Git worktrees let each agent work in its own isolated directory with its own bra
 
 ## Installation
 
+### Quick Install (macOS/Linux)
+
+```bash
+git clone https://github.com/WillCMcC/ws.git && cd ws && make && sudo make install && ws init
+```
+
 ### From Source
 
 ```bash
-go install github.com/will/ws@latest
+go install github.com/WillCMcC/ws@latest
 ```
 
 ### Manual Build
 
 ```bash
-git clone https://github.com/will/ws.git
+git clone https://github.com/WillCMcC/ws.git
 cd ws
 make
 sudo make install
 ```
 
-### Shell Integration (Required for `ws go`)
+### Shell Integration (Required for navigation)
 
-Run `ws init` to set up shell integration, or manually add to your shell config:
+Run `ws init` to automatically set up shell integration. It will:
+- Add the shell function to your config
+- Copy the `source` command to your clipboard
+
+Or manually add to your shell config:
 
 <details>
 <summary>Bash (~/.bashrc)</summary>
 
 ```bash
-ws() {
-    if [[ "$1" == "go" && -n "$2" ]]; then
-        local target
-        target=$(command ws go "$2" 2>/dev/null)
-        local exit_code=$?
-        if [[ $exit_code -eq 0 && -n "$target" && -d "$target" ]]; then
-            cd "$target" || return 1
-        else
-            command ws go "$2"
-            return $exit_code
-        fi
-    else
-        command ws "$@"
-    fi
-}
+source /path/to/ws-cli/scripts/shell/ws.bash
 ```
+
+Or see [scripts/shell/ws.bash](scripts/shell/ws.bash) for the full function.
 </details>
 
 <details>
 <summary>Zsh (~/.zshrc)</summary>
 
 ```zsh
-ws() {
-    if [[ "$1" == "go" && -n "$2" ]]; then
-        local target
-        target=$(command ws go "$2" 2>/dev/null)
-        local exit_code=$?
-        if [[ $exit_code -eq 0 && -n "$target" && -d "$target" ]]; then
-            cd "$target"
-        else
-            command ws go "$2"
-            return $exit_code
-        fi
-    else
-        command ws "$@"
-    fi
-}
+source /path/to/ws-cli/scripts/shell/ws.zsh
 ```
+
+Or see [scripts/shell/ws.zsh](scripts/shell/ws.zsh) for the full function.
 </details>
 
 <details>
 <summary>Fish (~/.config/fish/conf.d/ws.fish)</summary>
 
 ```fish
-function ws
-    if test "$argv[1]" = "go" -a -n "$argv[2]"
-        set -l target (command ws go $argv[2] 2>/dev/null)
-        set -l exit_code $status
-        if test $exit_code -eq 0 -a -n "$target" -a -d "$target"
-            cd $target
-        else
-            command ws go $argv[2]
-            return $exit_code
-        end
-    else
-        command ws $argv
-    end
-end
+source /path/to/ws-cli/scripts/shell/ws.fish
 ```
+
+Or see [scripts/shell/ws.fish](scripts/shell/ws.fish) for the full function.
 </details>
 
 ## Quick Start
@@ -102,16 +77,14 @@ end
 ```bash
 cd ~/projects/myapp
 
-# Create a workspace (automatically cd's into it)
-ws new auth-feature
-claude  # or aider, codex, etc.
+# The easy way: create workspace and start your agent in one command
+ws ez auth-feature    # creates workspace, cd's into it, runs your agent
 
-# In another terminal, create another workspace
-cd ~/projects/myapp
-ws new fix-bug
-claude
+# Or step by step:
+ws new auth-feature   # creates workspace and cd's into it
+claude                # start your agent manually
 
-# Check status of all workspaces
+# Check status of all workspaces (detects running agents!)
 ws list
 ws status
 
@@ -127,14 +100,40 @@ ws done auth-feature    # clean up
 
 ## Commands
 
+| Command | Aliases | Description |
+|---------|---------|-------------|
+| `ws new <name>` | | Create a new workspace |
+| `ws ez <name>` | | Create workspace and start agent |
+| `ws list` | `ls` | List all workspaces |
+| `ws go <name>` | | Navigate to a workspace |
+| `ws home` | | Navigate to main repository |
+| `ws done <name>` | `rm`, `remove` | Remove a workspace |
+| `ws fold [name]` | | Rebase and merge workspace |
+| `ws status` | `st` | Show detailed workspace status |
+| `ws prune` | | Clean up stale worktrees |
+| `ws init` | | Set up shell integration |
+| `ws config` | | Manage configuration |
+
 ### `ws new <name> [--from <ref>]`
 
-Create a new workspace (worktree + branch).
+Create a new workspace and navigate to it.
 
 ```bash
 ws new auth-feature              # Branch from default (main/master)
 ws new bugfix --from develop     # Branch from specific ref
 ws new experiment --no-hooks     # Skip post-create hooks
+```
+
+### `ws ez <name> [--from <ref>]`
+
+Create workspace, navigate to it, and start your agent. The ultimate one-liner.
+
+```bash
+# First, configure your agent command (one-time setup):
+ws config set agent_cmd "claude --dangerously-skip-permissions"
+
+# Then use ez to create + cd + run agent:
+ws ez auth-feature
 ```
 
 ### `ws list [--json] [--quiet]`
@@ -149,10 +148,18 @@ ws list --quiet   # Just names (for scripting)
 
 ### `ws go <name>`
 
-Navigate to a workspace directory (requires shell integration).
+Navigate to a workspace directory.
 
 ```bash
 ws go auth-feature
+```
+
+### `ws home`
+
+Navigate back to the main repository directory.
+
+```bash
+ws home
 ```
 
 ### `ws done <name> [--force] [--keep-branch]`
@@ -164,6 +171,21 @@ ws done auth-feature              # Remove worktree and branch
 ws done auth-feature --keep-branch # Keep the branch
 ws done auth-feature --force      # Remove even with uncommitted changes
 ```
+
+### `ws fold [name] [--no-done]`
+
+Rebase workspace onto the default branch and merge it in. The complete workflow for finishing a feature.
+
+```bash
+ws fold                  # Fold current workspace
+ws fold auth-feature     # Fold specific workspace
+ws fold --no-done        # Keep workspace after folding
+```
+
+This command:
+1. Rebases your workspace branch onto the latest default branch
+2. Fast-forward merges into the default branch
+3. Cleans up the workspace (unless `--no-done`)
 
 ### `ws status`
 
@@ -180,8 +202,10 @@ auth-feature
   Branch:   auth-feature (3 commits ahead of main)
   Status:   2 file(s) modified
   Last:     "Add login form" (2 hours ago)
-  Process:  none detected
+  Process:  claude (pid 12345)
 ```
+
+The process detection automatically finds running agents (claude, aider, codex, etc.) in each workspace.
 
 ### `ws prune [--dry-run] [--yes]`
 
@@ -202,6 +226,22 @@ ws init             # Auto-detect shell
 ws init --shell zsh # Specify shell
 ```
 
+### `ws config <subcommand>`
+
+Manage ws configuration.
+
+```bash
+ws config set agent_cmd "claude --dangerously-skip-permissions"
+ws config get agent_cmd
+ws config list              # Show all settings
+ws config path              # Show config file location
+```
+
+Available keys:
+- `agent_cmd` - Command to run with `ws ez`
+- `default_base` - Default base branch for new workspaces
+- `directory` - Workspace directory pattern
+
 ## Directory Layout
 
 By default, workspaces are created in a sibling directory:
@@ -218,9 +258,22 @@ By default, workspaces are created in a sibling directory:
 
 ## Configuration
 
-### Environment Variables
+### Using `ws config` (Recommended)
 
 ```bash
+ws config set agent_cmd "claude --dangerously-skip-permissions"
+ws config set default_base "develop"
+ws config list
+```
+
+Config is stored in `~/.config/ws/config`.
+
+### Environment Variables
+
+Environment variables override config file settings:
+
+```bash
+WS_AGENT_CMD="claude --dangerously-skip-permissions"  # Agent for 'ws ez'
 WS_DIRECTORY="../workspaces"  # Override workspace directory
 WS_DEFAULT_BASE="develop"     # Override default base branch
 WS_NO_HOOKS="1"               # Disable all hooks

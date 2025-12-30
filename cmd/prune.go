@@ -7,8 +7,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/will/ws/internal/git"
-	"github.com/will/ws/internal/workspace"
+	"github.com/WillCMcC/ws/internal/git"
+	"github.com/WillCMcC/ws/internal/workspace"
 )
 
 // PruneCmd handles the 'ws prune' command.

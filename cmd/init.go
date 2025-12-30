@@ -43,6 +43,20 @@ ws() {
             fi
         fi
         return $exit_code
+    elif [[ "$1" == "ez" && -n "$2" ]]; then
+        command ws "$@"
+        local exit_code=$?
+        if [[ $exit_code -eq 0 ]]; then
+            local target
+            target=$(command ws go "$2" 2>/dev/null)
+            if [[ -n "$target" && -d "$target" ]]; then
+                cd "$target" || return 1
+                local agent_cmd
+                agent_cmd=$(command ws agent-cmd)
+                eval "$agent_cmd"
+            fi
+        fi
+        return $exit_code
     else
         command ws "$@"
     fi
@@ -51,10 +65,10 @@ ws() {
 # Optional: completion
 _ws_completions() {
     if [[ ${COMP_CWORD} -eq 1 ]]; then
-        COMPREPLY=($(compgen -W "new list go home done status prune init" -- "${COMP_WORDS[1]}"))
+        COMPREPLY=($(compgen -W "new ez list go home done fold status prune init" -- "${COMP_WORDS[1]}"))
     elif [[ ${COMP_CWORD} -eq 2 ]]; then
         case "${COMP_WORDS[1]}" in
-            go|done|status)
+            go|done|fold|status)
                 local workspaces
                 workspaces=$(command ws list --quiet 2>/dev/null)
                 COMPREPLY=($(compgen -W "$workspaces" -- "${COMP_WORDS[2]}"))
@@ -97,6 +111,20 @@ ws() {
             fi
         fi
         return $exit_code
+    elif [[ "$1" == "ez" && -n "$2" ]]; then
+        command ws "$@"
+        local exit_code=$?
+        if [[ $exit_code -eq 0 ]]; then
+            local target
+            target=$(command ws go "$2" 2>/dev/null)
+            if [[ -n "$target" && -d "$target" ]]; then
+                cd "$target"
+                local agent_cmd
+                agent_cmd=$(command ws agent-cmd)
+                eval "$agent_cmd"
+            fi
+        fi
+        return $exit_code
     else
         command ws "$@"
     fi
@@ -107,10 +135,12 @@ _ws() {
     local -a commands
     commands=(
         'new:Create a new workspace'
+        'ez:Create workspace and start agent'
         'list:List all workspaces'
         'go:Navigate to a workspace'
         'home:Navigate to main repository'
         'done:Remove a workspace'
+        'fold:Rebase and merge workspace'
         'status:Show workspace status'
         'prune:Clean up stale worktrees'
         'init:Set up shell integration'
@@ -120,7 +150,7 @@ _ws() {
         _describe 'command' commands
     elif (( CURRENT == 3 )); then
         case "$words[2]" in
-            go|done)
+            go|done|fold)
                 local -a workspaces
                 workspaces=(${(f)"$(command ws list --quiet 2>/dev/null)"})
                 _describe 'workspace' workspaces
@@ -160,6 +190,18 @@ function ws
             end
         end
         return $exit_code
+    else if test "$argv[1]" = "ez" -a -n "$argv[2]"
+        command ws $argv
+        set -l exit_code $status
+        if test $exit_code -eq 0
+            set -l target (command ws go $argv[2] 2>/dev/null)
+            if test -n "$target" -a -d "$target"
+                cd $target
+                set -l agent_cmd (command ws agent-cmd)
+                eval $agent_cmd
+            end
+        end
+        return $exit_code
     else
         command ws $argv
     end
@@ -167,15 +209,17 @@ end
 
 # Completion
 complete -c ws -n "__fish_use_subcommand" -a new -d "Create a new workspace"
+complete -c ws -n "__fish_use_subcommand" -a ez -d "Create workspace and start agent"
 complete -c ws -n "__fish_use_subcommand" -a list -d "List all workspaces"
 complete -c ws -n "__fish_use_subcommand" -a go -d "Navigate to a workspace"
 complete -c ws -n "__fish_use_subcommand" -a home -d "Navigate to main repository"
 complete -c ws -n "__fish_use_subcommand" -a done -d "Remove a workspace"
+complete -c ws -n "__fish_use_subcommand" -a fold -d "Rebase and merge workspace"
 complete -c ws -n "__fish_use_subcommand" -a status -d "Show workspace status"
 complete -c ws -n "__fish_use_subcommand" -a prune -d "Clean up stale worktrees"
 complete -c ws -n "__fish_use_subcommand" -a init -d "Set up shell integration"
 
-complete -c ws -n "__fish_seen_subcommand_from go done" -a "(command ws list --quiet 2>/dev/null)"`
+complete -c ws -n "__fish_seen_subcommand_from go done fold" -a "(command ws list --quiet 2>/dev/null)"`
 
 // InitCmd handles the 'ws init' command.
 func InitCmd(args []string) int {

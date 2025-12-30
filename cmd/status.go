@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/will/ws/internal/git"
-	"github.com/will/ws/internal/workspace"
+	"github.com/WillCMcC/ws/internal/git"
+	"github.com/WillCMcC/ws/internal/process"
+	"github.com/WillCMcC/ws/internal/workspace"
 )
 
 // StatusCmd handles the 'ws status' command.
@@ -46,6 +47,7 @@ func StatusCmd(args []string) int {
 	}
 
 	defaultBase := mgr.Config.GetDefaultBase()
+	agentNames := mgr.Config.Status.AgentProcesses
 
 	for i, ws := range workspaces {
 		if i > 0 {
@@ -81,8 +83,17 @@ func StatusCmd(args []string) int {
 			fmt.Printf("  Last:     \"%s\" (%s)\n", msg, when)
 		}
 
-		// Process detection placeholder
-		fmt.Printf("  Process:  none detected\n")
+		// Process detection
+		if mgr.Config.Status.DetectProcesses {
+			agents := process.DetectAgents(ws.Path, agentNames)
+			if len(agents) > 0 {
+				fmt.Printf("  Process:  %s (pid %d)\n", agents[0].Name, agents[0].PID)
+			} else {
+				fmt.Printf("  Process:  none detected\n")
+			}
+		} else {
+			fmt.Printf("  Process:  detection disabled\n")
+		}
 	}
 
 	return 0

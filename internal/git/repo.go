@@ -7,14 +7,36 @@ import (
 	"strings"
 )
 
-// FindRepoRoot returns the root directory of the current git repository.
+// FindRepoRoot returns the root directory of the main git repository.
+// If called from within a worktree, it returns the main worktree path.
 func FindRepoRoot() (string, error) {
+	// First check if we're in a git repo at all
 	cmd := exec.Command("git", "rev-parse", "--show-toplevel")
-	output, err := cmd.Output()
-	if err != nil {
+	if err := cmd.Run(); err != nil {
 		return "", fmt.Errorf("not a git repository")
 	}
-	return strings.TrimSpace(string(output)), nil
+
+	// Get the main worktree (first entry in worktree list)
+	cmd = exec.Command("git", "worktree", "list", "--porcelain")
+	output, err := cmd.Output()
+	if err != nil {
+		// Fallback to show-toplevel if worktree list fails
+		cmd = exec.Command("git", "rev-parse", "--show-toplevel")
+		output, err = cmd.Output()
+		if err != nil {
+			return "", fmt.Errorf("not a git repository")
+		}
+		return strings.TrimSpace(string(output)), nil
+	}
+
+	// Parse first worktree path (main worktree is always first)
+	for _, line := range strings.Split(string(output), "\n") {
+		if strings.HasPrefix(line, "worktree ") {
+			return strings.TrimPrefix(line, "worktree "), nil
+		}
+	}
+
+	return "", fmt.Errorf("could not determine repository root")
 }
 
 // RepoName returns the basename of the repository directory.
