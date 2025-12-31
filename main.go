@@ -45,6 +45,8 @@ func main() {
 		exitCode = cmd.InitCmd(args)
 	case "config":
 		exitCode = cmd.ConfigCmd(args)
+	case "queue":
+		exitCode = cmd.RunQueue()
 	case "agent-cmd":
 		// Internal command for shell integration to get agent command
 		fmt.Print(cmd.GetAgentCmd())
@@ -82,6 +84,7 @@ Commands:
   prune          Clean up stale worktrees
   init           Set up shell integration
   config         Manage configuration
+  queue          Interactive task queue manager
 
 Aliases:
   ls             Alias for 'list'

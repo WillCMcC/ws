@@ -167,6 +167,7 @@ ws fold                 # rebase off of master and merge
 | `ws prune`       |                | Clean up stale worktrees         |
 | `ws init`        |                | Set up shell integration         |
 | `ws config`      |                | Manage configuration             |
+| `ws queue`       |                | Interactive task queue manager   |
 
 ### `ws new <name> [--from <ref>]`
 
@@ -311,6 +312,90 @@ Available keys:
 - `agent_cmd` - Command to run with `ws ez`
 - `default_base` - Default base branch for new workspaces
 - `directory` - Workspace directory pattern
+
+### `ws queue`
+
+Interactive TUI for managing a task queue. This GUI tool automates the complete workflow:
+
+1. Add tasks to a queue
+2. Run `ws ez <task>` for each task automatically
+3. Validate changes with git diff preview
+4. Commit and `ws fold` on confirmation
+5. Handle merge conflicts with interactive `ws auto-rebase`
+
+**Features:**
+
+- **Queue Management**: Add, view, and organize development tasks
+- **Automated Workflow**: Automatically creates workspaces and starts agents for queued tasks
+- **Validation View**: Preview git changes before committing
+- **Conflict Resolution**: Interactive interface for handling merge conflicts during fold
+- **Status Tracking**: Visual indicators for task state (queued, running, validating, conflict, completed, failed)
+
+**Usage:**
+
+```bash
+# Launch the interactive queue manager
+ws queue
+
+# In the queue UI:
+# a - add new task
+# n - process next pending task
+# ↑/↓ or j/k - navigate tasks
+# enter - view task details
+# c - clear completed tasks
+# d - delete selected task
+# q - quit
+
+# Task workflow:
+# 1. Add task: Press 'a', enter task name and description
+# 2. Start task: Press 'n' to process next task (runs ws ez <taskname>)
+# 3. Work on task: Agent helps you implement the feature
+# 4. Validate: Press 'v' to preview git changes
+# 5. Commit: Press 'y' to accept, enter commit message
+# 6. Fold: Automatically runs ws fold to merge back to main
+# 7. Handle conflicts: If conflicts occur, press 'a' for auto-rebase assistance
+```
+
+**Task States:**
+
+- **queued** - Task waiting to be processed
+- **running** - Workspace created, agent working on task
+- **validating** - Ready for review and commit
+- **conflict** - Merge conflicts detected during fold
+- **completed** - Successfully folded and merged
+- **failed** - Error occurred during processing
+
+**Example Workflow:**
+
+```bash
+# Start the queue manager
+ws queue
+
+# Add multiple tasks
+Press 'a': "auth-feature" -> "Add user authentication"
+Press 'a': "fix-api-bug" -> "Fix timeout in API endpoint"
+Press 'a': "update-docs" -> "Update README with new features"
+
+# Process first task
+Press 'n' - Creates workspace and starts agent for "auth-feature"
+# Work with agent on the task...
+
+# When ready, validate changes
+Press 'enter' to view task details
+Press 'v' to validate and see git diff
+
+# Commit and fold
+Press 'y' to accept changes
+Enter commit message: "Add JWT authentication system"
+# Automatically runs: git add, git commit, ws fold
+
+# Task complete! Process next task
+Press 'n' - Starts "fix-api-bug"
+```
+
+**Queue Persistence:**
+
+The queue is automatically saved to `~/.config/ws/queue.json` and persists across sessions. You can close and reopen `ws queue` at any time.
 
 ## Directory Layout
 
