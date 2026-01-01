@@ -111,10 +111,9 @@ func FoldCmd(args []string) int {
 	// Step 2: Rebase workspace onto default branch
 	fmt.Printf("Rebasing '%s' onto '%s'...\n", wsName, defaultBranch)
 	if err := runGitCmd(wsPath, "rebase", defaultBranch); err != nil {
-		fmt.Fprintf(os.Stderr, "\nws: rebase failed\n")
-		fmt.Fprintf(os.Stderr, "    Resolve conflicts in %s, then run:\n", wsPath)
-		fmt.Fprintf(os.Stderr, "      cd %s && git rebase --continue\n", wsPath)
-		fmt.Fprintf(os.Stderr, "    Or abort with: git rebase --abort\n")
+		fmt.Fprintf(os.Stderr, "\nws: rebase failed - resolve conflicts then try again\n")
+		fmt.Fprintf(os.Stderr, "    ws auto-rebase     # get agent help with conflicts\n")
+		fmt.Fprintf(os.Stderr, "    git rebase --abort # or abort\n")
 		return 1
 	}
 

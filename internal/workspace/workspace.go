@@ -74,14 +74,8 @@ func (m *Manager) Create(name, base string, noHooks bool) error {
 		}
 	}
 
-	// Print success message
-	fmt.Printf("Created workspace: %s\n", name)
-	fmt.Printf("  Path:   %s\n", wsPath)
-	fmt.Printf("  Branch: %s (from %s)\n", name, base)
-	fmt.Println()
-	fmt.Printf("  cd %s && claude\n", wsPath)
-	fmt.Println()
-	fmt.Printf("  Or use: ws go %s\n", name)
+	// Print success message (minimal - shell function handles cd)
+	fmt.Printf("Created workspace: %s (from %s)\n", name, base)
 
 	return nil
 }
@@ -152,8 +146,8 @@ func (m *Manager) Remove(name string, force, keepBranch bool) error {
 		fmt.Printf("Workspace %s has uncommitted changes:\n", name)
 		fmt.Print(status)
 		fmt.Println()
-		fmt.Printf("To remove anyway: ws done %s --force\n", name)
-		fmt.Printf("To keep changes:  cd %s && git stash\n", ws.Path)
+		fmt.Printf("ws done %s --force  # remove anyway\n", name)
+		fmt.Printf("git stash           # or stash changes first\n")
 		return fmt.Errorf("workspace has uncommitted changes")
 	}
 
