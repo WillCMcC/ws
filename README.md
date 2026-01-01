@@ -167,7 +167,8 @@ ws fold                 # rebase off of master and merge
 | `ws prune`       |                | Clean up stale worktrees         |
 | `ws init`        |                | Set up shell integration         |
 | `ws config`      |                | Manage configuration             |
-| `ws queue`       |                | Interactive task queue manager   |
+| `ws queue`       |                | Interactive task queue manager (TUI) |
+| `ws queue-gui`   |                | Graphical task queue manager with menu bar |
 
 ### `ws new <name> [--from <ref>]`
 
@@ -396,6 +397,77 @@ Press 'n' - Starts "fix-api-bug"
 **Queue Persistence:**
 
 The queue is automatically saved to `~/.config/ws/queue.json` and persists across sessions. You can close and reopen `ws queue` at any time.
+
+### `ws queue-gui`
+
+**Graphical User Interface** for task queue management with macOS menu bar integration.
+
+All the power of `ws queue` with a modern GUI:
+
+**Features:**
+- 🖥️ **Cross-platform GUI** - Built with Fyne framework
+- 📍 **macOS Menu Bar** - System tray integration for quick access
+- 🌟 **Dream Feature** - AI-powered feature suggestions using deep codebase analysis
+- 🎨 **Visual Task Management** - Drag, drop, and click to manage tasks
+- ✨ **Rich Dialogs** - Beautiful validation previews and commit flows
+
+**Launch:**
+
+```bash
+# Start the GUI
+ws queue-gui
+
+# The GUI provides:
+# - Main window with task list and status indicators
+# - Toolbar with add, play, delete, refresh buttons
+# - Dream button (🔍) for AI feature suggestions
+# - macOS menu bar for quick actions
+```
+
+**Menu Bar (macOS):**
+- **Show Queue** - Open the main window
+- **Process Next Task** - Start next pending task
+- **Add Task** - Quick add dialog
+- **✨ Dream Feature** - AI suggests innovative features
+- **Quit** - Exit application
+
+**Dream Feature:**
+
+The Dream button uses AI to analyze your codebase and propose innovative features:
+
+1. Click the Dream button (🔍) in the toolbar
+2. AI deeply explores your codebase using Glob and Grep patterns
+3. AI reads key files and understands your architecture
+4. AI proposes a specific, valuable feature with:
+   - Feature name and description
+   - Rationale for why it's valuable
+   - Implementation approach
+5. Add the suggestion directly as a task to your queue!
+
+**Example Dream Workflow:**
+
+```bash
+ws queue-gui
+
+# Click Dream button
+# AI analyzes codebase for 30 seconds...
+
+# Result:
+# Feature: Workspace Templates
+# Description: Pre-configured workspace setups for different task types
+# Rationale: Eliminates repetitive configuration, ensures consistency
+# Implementation: Add 'ws template' commands, store in ~/.config/ws/templates/
+
+# Click "Add as Task" button
+# → New task added to queue automatically!
+```
+
+**GUI Advantages:**
+- **Visual feedback** - See all tasks at a glance with color-coded status
+- **Menu bar access** - Quick actions without opening terminal
+- **Rich interactions** - Dialogs for validation, commits, conflicts
+- **AI integration** - Dream feature for creative suggestions
+- **Background processing** - Tasks run while you work
 
 ## Directory Layout
 

@@ -47,6 +47,8 @@ func main() {
 		exitCode = cmd.ConfigCmd(args)
 	case "queue":
 		exitCode = cmd.RunQueue()
+	case "queue-gui":
+		exitCode = cmd.RunQueueGUI()
 	case "agent-cmd":
 		// Internal command for shell integration to get agent command
 		fmt.Print(cmd.GetAgentCmd())
@@ -84,7 +86,8 @@ Commands:
   prune          Clean up stale worktrees
   init           Set up shell integration
   config         Manage configuration
-  queue          Interactive task queue manager
+  queue          Interactive task queue manager (TUI)
+  queue-gui      Graphical task queue manager with menu bar
 
 Aliases:
   ls             Alias for 'list'
