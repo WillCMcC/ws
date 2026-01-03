@@ -44,7 +44,7 @@ type StatusConfig struct {
 func DefaultConfig() *Config {
 	return &Config{
 		Workspace: WorkspaceConfig{
-			Directory:   "../{repo}-ws",
+			Directory:   ".worktrees/{repo}",
 			DefaultBase: "", // Empty means auto-detect (main or master)
 		},
 		Hooks: HooksConfig{
