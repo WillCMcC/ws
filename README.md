@@ -314,17 +314,19 @@ Available keys:
 
 ## Directory Layout
 
-By default, workspaces are created in a sibling directory:
+By default, workspaces are created in `.worktrees/{repo}` within your repository:
 
 ```
-~/projects/
-├── myapp/                    # Main repository
-│   ├── .git/
-│   └── src/
-└── myapp-ws/                 # Workspace directory
-    ├── auth-feature/         # Worktree for auth-feature branch
-    └── fix-bug/              # Worktree for fix-bug branch
+~/projects/myapp/             # Main repository
+├── .git/
+├── src/
+└── .worktrees/               # Workspace directory (gitignored)
+    └── myapp/                # Repository name
+        ├── auth-feature/     # Worktree for auth-feature branch
+        └── fix-bug/          # Worktree for fix-bug branch
 ```
+
+This keeps worktrees organized and prevents cluttering the parent directory. The `.worktrees` directory is automatically added to `.gitignore` if needed.
 
 ### Environment Variables
 
@@ -332,9 +334,9 @@ Environment variables override config file settings:
 
 ```bash
 WS_AGENT_CMD="claude --dangerously-skip-permissions"  # Agent for 'ws ez'
-WS_DIRECTORY="../workspaces"  # Override workspace directory
-WS_DEFAULT_BASE="develop"     # Override default base branch
-WS_NO_HOOKS="1"               # Disable all hooks
+WS_DIRECTORY=".worktrees/{repo}"  # Override workspace directory (default)
+WS_DEFAULT_BASE="develop"         # Override default base branch
+WS_NO_HOOKS="1"                   # Disable all hooks
 ```
 
 ## Design Principles
